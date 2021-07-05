@@ -16959,8 +16959,16 @@ var JotForm = {
                 data[_name] = pair.value;
 
                 if (pair.value.trim() !== '' && res.settings && res.settings.fieldBehaviour === 'readonly' && !isManualPrefill) {
-                    field.closest('.form-line').setStyle({ 'pointer-events': 'none' });
-                    field.setAttribute('autocomplete', _name);
+                    if (['radio', 'checkbox'].indexOf(field.type) > -1) {
+                        var qid = field.closest('.form-line').getAttribute('id').split('_')[1];
+                        JotForm.enableDisableField(qid, false);
+                    } else {
+                        field.disable();
+                        field.setAttribute('autocomplete', _name);
+                        if (!field.hasClassName('conditionallyDisabled')) {
+                            field.addClassName('conditionallyDisabled');
+                        }
+                    }
                 }
             });
             JotForm.prePopulations(data);
