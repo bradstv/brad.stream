@@ -739,11 +739,11 @@ if (window.JotForm && JotForm.accessible) $('input_24').setAttribute('tabindex',
       productID = {"0":"input_19_1001","1":"input_19_1002"};
       paymentType = "product";
       JotForm.setCurrencyFormat('USD',true, 'point');
-      JotForm.totalCounter({"input_19_1001":{"price":"5.00"},"input_19_1002":{"price":"12.00"}});
+      JotForm.totalCounter({"input_19_1001":{"price":"5.00"},"input_19_1002":{"price":"10.00"}});
       $$('.form-product-custom_quantity').each(function(el, i){el.observe('blur', function(){isNaN(this.value) || this.value < 1 ? this.value = '0' : this.value = parseInt(this.value)})});
       $$('.form-product-custom_quantity').each(function(el, i){el.observe('focus', function(){this.value == 0 ? this.value = '' : this.value})});
       JotForm.handleProductLightbox();
-      JotForm.paymentProperties = {"styleColor":"blue","styleShape":"rect","styleSize":"medium","styleLabel":"pay","styleLayout":"vertical","payLaterEnabled":"No","paymentFormProperties":{"products":[{"connectedCategories":"[]","connectedProducts":"[]","customPrice":"","customPriceSource":"0","description":"For Brad's FFA Trickshot Server on S1x","fitImageToCanvas":"Yes","hasExpandedOption":"","hasQuantity":"","hasSpecialPricing":"","icon":"","images":"[\"https://www.jotform.com/uploads/bradcool567/form_files/Screenshot 2021-06-22 004941.png?nc=1\"]","isLowStockAlertEnabled":"No","isStockControlEnabled":"No","lowStockValue":"","name":"S1X VIP","options":[],"period":"Monthly","pid":"1001","price":"5.00","recurringtimes":"No Limit","setupfee":"","stockQuantityAmount":"","trial":"None"},{"connectedCategories":"[]","connectedProducts":"[]","customPrice":"","customPriceSource":"0","description":"For Brad's Private Match Menu on BO3","fitImageToCanvas":"Yes","hasExpandedOption":"","hasQuantity":"","hasSpecialPricing":"","icon":"","images":"[\"https://www.jotform.com/uploads/bradcool567/form_files/Screenshot 2021-07-06 224822-Shop.png?nc=1\"]","isLowStockAlertEnabled":"No","isStockControlEnabled":"No","lowStockValue":"","name":"BO3 VIP","options":[],"period":"Monthly","pid":"1002","price":"12.00","recurringtimes":"No Limit","setupfee":"","stockQuantityAmount":"","trial":"None"}]}}
+      JotForm.paymentProperties = {"styleColor":"blue","styleShape":"rect","styleSize":"medium","styleLabel":"pay","styleLayout":"vertical","payLaterEnabled":"No","paymentFormProperties":{"products":[{"connectedCategories":"[]","connectedProducts":"[]","customPrice":"","customPriceSource":"0","description":"For Brad's FFA Trickshot Server on S1x","fitImageToCanvas":"Yes","hasExpandedOption":"","hasQuantity":"","hasSpecialPricing":"","icon":"","images":"[\"https://www.jotform.com/uploads/bradcool567/form_files/Screenshot 2021-06-22 004941.png?nc=1\"]","isLowStockAlertEnabled":"No","isStockControlEnabled":"No","lowStockValue":"","name":"S1X VIP","options":[],"period":"Monthly","pid":"1001","price":"5.00","recurringtimes":"No Limit","setupfee":"","stockQuantityAmount":"","trial":"None"},{"connectedCategories":"[]","connectedProducts":"[]","customPrice":"","customPriceSource":"0","description":"For Brad's Private Match Menu on BO3","fitImageToCanvas":"Yes","hasExpandedOption":"","hasQuantity":"","hasSpecialPricing":"","icon":"","images":"[\"https://www.jotform.com/uploads/bradcool567/form_files/Screenshot 2021-07-06 224822-Shop.png?nc=1\"]","isLowStockAlertEnabled":"No","isStockControlEnabled":"No","lowStockValue":"","name":"BO3 VIP","options":[],"period":"Monthly","pid":"1002","price":"10.00","recurringtimes":"No Limit","setupfee":"","stockQuantityAmount":"","trial":"None"}]}}
 	JotForm.newDefaultTheme = true;
 	JotForm.extendsNewTheme = false;
 	JotForm.newPaymentUIForNewCreatedForms = false;
@@ -930,7 +930,7 @@ JotForm.paymentExtrasOnTheFly([null,null,null,null,null,null,null,null,null,null
                             <span data-wrapper-react="true">
                               $
                               <span id="input_19_1002_price">
-                                12.00
+                                10.00
                               </span>
                             </span>
                           </b>
