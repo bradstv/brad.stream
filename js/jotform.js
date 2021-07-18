@@ -837,6 +837,14 @@ var JotForm = {
                 if (this.payment === "authnet") {
                     this.handleAuthNet();
                 }
+  
+                if (this.payment === "bluepay") {
+                  this.handleBluepay();
+                }
+                
+                if (this.payment === "moneris") {
+                  this.handleMoneris();
+                }
 
                 if (this.payment === "bluesnap") {
                     this.handleBluesnap();
@@ -7788,8 +7796,8 @@ var JotForm = {
                     if (!isNaN(hour) && !isNaN(minute)) {
                         var ampmField = $('input_'+result+'_ampm') || $('ampm_' + result);
                         if (ampmField) {
-                            ampmField.value = hour > 12 ? 'PM' : 'AM';
-                            hour = hour > 12 ? hour - 12 : hour;
+                            ampmField.value = hour >= 12 ? 'PM' : 'AM';
+                            hour = hour >= 12 ? hour - 12 : hour;
                             ampmField.triggerEvent('change');
                         }
 
@@ -7808,6 +7816,7 @@ var JotForm = {
                         var timeInput = $('input_'+result+'_timeInput');
                         if (timeInput) {
                             var calculatedHour = hour.toString().length === 1 ? '0' + hour : hour;
+                            calculatedHour = calculatedHour == 0 ? '12' : calculatedHour;
                             timeInput.value = calculatedHour+":"+minute;
                             timeInput.triggerEvent('change');
                         }
@@ -9133,7 +9142,34 @@ var JotForm = {
       JotForm.mollie =  __mollie;
       JotForm.mollie.init();
     },
-
+  
+    handleBluepay: function () {
+      if (JotForm.isEditMode()) return;
+      
+      if (typeof __bluepay === "undefined") {
+        alert("Bluepay script didn't work properly. Form will be reloaded. ");
+        location.reload();
+        return;
+      }
+      
+      JotForm.bluepay =  __bluepay;
+      JotForm.bluepay.init();
+    },
+  
+  
+    handleMoneris: function () {
+      if (JotForm.isEditMode()) return;
+      
+      if (typeof __moneris === "undefined") {
+        alert("Moneris script didn't work properly. Form will be reloaded. ");
+        location.reload();
+        return;
+      }
+      
+      JotForm.moneris =  __moneris;
+      JotForm.moneris.init();
+    },
+  
     handlePaypalSPB: function () {
       JotForm.paypalSPB = __paypalSPB;
       try {
@@ -10313,6 +10349,7 @@ var JotForm = {
 
                     //Native stripe subscriptions only available for subscriptions
                     var isStripe = ((ci.hasAttribute('stripe') || ci.hasAttribute('data-stripe')) && window.paymentType === 'subscription');
+                    var isStripeCheckout = ((ci.hasAttribute('stripe') || ci.hasAttribute('data-stripe')) && ['subscription', 'product'].indexOf(window.paymentType) > -1) && $(ci).up('.form-line').getAttribute('data-type') === 'control_stripeCheckout';
 
                     var a = new Ajax.Jsonp(JotForm.server, {
                         parameters: {
@@ -10320,6 +10357,7 @@ var JotForm = {
                             coupon: ci.value,
                             formID: formID,
                             stripe: isStripe,
+                            stripecheckout: isStripeCheckout,
                             editMode: JotForm.isEditMode(),
                             paymentID: $$('input[name="simple_fpc"]')[0].value
                         },
@@ -12614,6 +12652,7 @@ var JotForm = {
         var signatureInput = inputContainer.querySelector('input[type="hidden"]');
         var signatureTrigger = inputContainer;
           if (signatureInput && signatureTrigger && window.JFFormSignature) {
+            var labelTitle = inputContainer.querySelector('label').innerText;
             var onUse = function(output) {
               var pad = inputContainer.querySelector('.pad');
 
@@ -12658,8 +12697,10 @@ var JotForm = {
               }
           };
           var getInitialValue = function() {
+            var signatureImage = inputContainer.querySelector('#signature-pad-image');
+            var sigValue = signatureInput.value.indexOf("data:image") === -1 && signatureImage ? signatureImage.src : signatureInput.value;
             return {
-              value: signatureInput.value,
+              value: sigValue,
               mode: signatureInput.dataset.mode,
               font: signatureInput.dataset.font,
               color: signatureInput.dataset.color,
@@ -12670,7 +12711,7 @@ var JotForm = {
             return signatureInput.hasClassName('conditionallyDisabled');
           }
           window.JFFormSignature({
-            trigger: signatureTrigger, onUse: onUse, getInitialValue: getInitialValue, isDisabled: isDisabled
+            trigger: signatureTrigger, onUse: onUse, getInitialValue: getInitialValue, isDisabled: isDisabled, labelTitle: labelTitle
           });
         }
       });
@@ -13514,7 +13555,7 @@ var JotForm = {
 
         // BUGFIX#2815923 :: Even if the old "render" parameter was "true", the navigation could not be displayed because the last "render" parameter was "undefined".
         var nav = document.querySelector('.error-navigation-container');
-        JotForm.renderErrorNavigation = (JotForm.renderErrorNavigation && typeof render === 'undefined' && !nav) ? true : render;
+        JotForm.renderErrorNavigation = (typeof render === 'undefined' && !nav) ? true : render;
 
         if (JotForm._errTimeout) {
             clearTimeout(JotForm._errTimeout);
@@ -16947,8 +16988,15 @@ var JotForm = {
         JotForm.createXHRRequest(url, 'get', null, function(res) {
             $H(res.data).each(function(pair) {
                 var field = $(pair.key);
-                if (field === null || typeof pair.value !== 'string') return;
+                var line;
+                if (getQuerystring('useQuestionID') == '1' || (res.settings && res.settings.useQuestionID)) {
+                    var keys = pair.key.split('-');
+                    line = document.querySelector('#id_' + keys[0]);
+                    field = line.querySelector(keys[1] ? ' [data-component="' + keys[1] + '"]' : ' input, select, textarea');
+                }
+                if (field === null || typeof pair.value !== 'string' || pair.value.trim() === '') return;
 
+                if (!line) line = field.closest('.form-line');
                 var _name = field.name;
                 _name = _name.slice(_name.indexOf('_') + 1);
                 if (typeof document.get[_name] !== 'undefined') return;
@@ -16956,11 +17004,16 @@ var JotForm = {
                 if (field.type === 'checkbox') {
                     _name = _name.replace('[]', '');
                 }
-                data[_name] = pair.value;
 
-                if (pair.value.trim() !== '' && res.settings && res.settings.fieldBehaviour === 'readonly' && !isManualPrefill) {
+                if (['control_time', 'control_datetime'].indexOf(line.getAttribute('data-type')) > -1 && window.FORM_MODE !== 'cardform') {
+                    field.value = pair.value;
+                } else {
+                    data[_name] = pair.value;
+                }
+
+                if (res.settings && res.settings.fieldBehaviour === 'readonly' && !isManualPrefill) {
                     if (['radio', 'checkbox'].indexOf(field.type) > -1) {
-                        var qid = field.closest('.form-line').getAttribute('id').split('_')[1];
+                        var qid = line.getAttribute('id').split('_')[1];
                         JotForm.enableDisableField(qid, false);
                     } else {
                         field.disable();
@@ -16990,9 +17043,10 @@ var JotForm = {
 
         // Conditions should not work while creating manual prefill
         JotForm.conditions = [];
+        JotForm.fieldConditions = {};
 
         //show hidden fields
-        $$('.always-hidden').each(function(el) {
+        $$('.always-hidden, .form-field-hidden').each(function(el) {
             var id = el.getAttribute('id').split('_')[1];
             JotForm.showField(id);
         });
@@ -17028,8 +17082,45 @@ var JotForm = {
                 return;
             };
 
-            var questionContent = line.querySelector('.jfCard-question') || line;
-            questionContent.setStyle({ 'pointer-events': 'none', 'opacity': '0.3' });
+            var notSupportedText = "Prefill isn't available for this field.";
+            if (window.FORM_MODE === 'cardform') {
+                var questionContent = line.querySelector('.jfCard-question') || line;
+                questionContent.setStyle({ 'pointer-events': 'none', 'opacity': '0.3' });
+
+                var notificationContainer = line.querySelector('.jfCard-actionsNotification');
+                var messageContainer = notificationContainer.querySelector('.form-error-message');
+
+                if (messageContainer) {
+                    messageContainer.innerHTML = notSupportedText;
+                    messageContainer.setStyle({ 'display': 'block' });
+                } else {
+                    messageContainer = document.createElement('div');
+                    messageContainer.className = 'form-error-message';
+                    messageContainer.setStyle({ 'display': 'block' });
+                    messageContainer.innerHTML = notSupportedText;
+                    notificationContainer.appendChild(messageContainer);
+                }
+            } else {
+                var inputContainer = line.querySelector('div[class^="form-input"]');
+                var labelContainer = line.querySelector('.form-label');
+                if (inputContainer) {
+                    inputContainer.setStyle({ 'pointer-events': 'none', 'opacity': '0.3' });
+                }
+                if (labelContainer) {
+                    labelContainer.setStyle({ 'pointer-events': 'none', 'opacity': '0.3' });
+                }
+
+                var descriptionContent = line.querySelector('.form-description-content');
+                if (descriptionContent) {
+                    descriptionContent.innerHTML = notSupportedText;
+                } else {
+                    JotForm.description(id, notSupportedText);
+                }
+                // Temporary position fix
+                if (JotForm.newDefaultTheme || JotForm.extendsNewTheme) {
+                    line.querySelector('.form-description').setStyle({ bottom: 'auto', top: '0', maxWidth: '220px' });
+                }
+            }
         });
 
         $$('.form-submit-button').each(function(btn) {
